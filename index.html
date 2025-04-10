@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiabCare - Patient Monitoring System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="min-h-screen">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 p-4">
+            <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-800">DiabCare</h1>
+                    <p class="text-gray-600 mt-2">Patient Monitoring System</p>
+                </div>
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <input type="tel" id="phone" class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="+1 (234) 567-8900" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <input type="password" id="password" class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">Login</button>
+                    <div class="text-center">
+                        <a href="#" id="forgotPasswordLink" class="text-blue-600 hover:text-blue-800 text-sm">Forgot Password?</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Forgot Password Screen (Hidden by default) -->
+        <div id="forgotPasswordScreen" class="hidden min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 p-4">
+            <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+                <div class="text-center mb-8">
+                    <h1 class="text-2xl font-bold text-gray-800">Reset Password</h1>
+                    <p class="text-gray-600 mt-2">Enter your phone number to receive OTP</p>
+                </div>
+                <form id="forgotPasswordForm" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <input type="tel" id="resetPhone" class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="+1 (234) 567-8900" required>
+                    </div>
+                    <div id="otpSection" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Enter OTP</label>
+                        <input type="text" id="otp" class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter 6-digit OTP" maxlength="6">
+                    </div>
+                    <button type="submit" id="sendOtpBtn" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">Send OTP</button>
+                    <div class="text-center">
+                        <a href="#" id="backToLoginLink" class="text-blue-600 hover:text-blue-800 text-sm">Back to Login</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Patients List Screen (Hidden by default) -->
+        <div id="patientsListScreen" class="hidden">
+            <nav class="bg-white shadow-lg">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between h-16">
+                        <div class="flex items-center">
+                            <h1 class="text-xl font-bold text-gray-800">DiabCare</h1>
+                        </div>
+                        <div class="flex items-center">
+                            <button id="logoutBtn" class="text-gray-600 hover:text-gray-800">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Patients List</h2>
+                    <div class="flex space-x-4">
+                        <input type="text" placeholder="Search patients..." class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <select class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">All Patients</option>
+                            <option value="high">High Risk</option>
+                            <option value="moderate">Moderate Risk</option>
+                            <option value="low">Low Risk</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="patientsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Patient cards will be dynamically inserted here -->
+                </div>
+            </main>
+        </div>
+
+        <!-- Patient Details Screen (Hidden by default) -->
+        <div id="patientDetailsScreen" class="hidden">
+            <nav class="bg-white shadow-lg">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between h-16">
+                        <div class="flex items-center">
+                            <button id="backToListBtn" class="text-gray-600 hover:text-gray-800 mr-4">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <h1 class="text-xl font-bold text-gray-800">Patient Details</h1>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Patient Info -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-xl font-semibold mb-4">Patient Information</h3>
+                        <div id="patientInfo" class="space-y-4">
+                            <!-- Patient info will be dynamically inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Glucose Levels Graph -->
+                    <div class="lg:col-span-2 bg-white rounded-lg shadow p-6">
+                        <h3 class="text-xl font-semibold mb-4">Glucose Levels</h3>
+                        <div class="h-[400px]">
+                            <canvas id="glucoseChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Food Intake -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-xl font-semibold mb-4">Food Intake</h3>
+                        <div id="foodIntakeList" class="space-y-4">
+                            <!-- Food intake entries will be dynamically inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Daily Activities -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-xl font-semibold mb-4">Daily Activities</h3>
+                        <div id="activitiesList" class="space-y-4">
+                            <!-- Activities will be dynamically inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Patient Notes -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold">Patient Notes</h3>
+                            <button id="addNoteBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200">
+                                Add Note
+                            </button>
+                        </div>
+                        <div id="notesList" class="space-y-4">
+                            <!-- Notes will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Doctor's Schedule Screen -->
+        <div id="scheduleScreen" class="hidden">
+            <nav class="bg-white shadow-lg">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between h-16">
+                        <div class="flex items-center">
+                            <button id="backToListFromSchedule" class="text-gray-600 hover:text-gray-800 mr-4">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <h1 class="text-xl font-bold text-gray-800">Schedule</h1>
+                        </div>
+                        <div class="flex items-center">
+                            <button id="addTimeSlotBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200">
+                                Add Time Slot
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Upcoming Sessions</h2>
+                        <div class="flex space-x-4">
+                            <input type="date" id="scheduleDate" class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div id="timeSlotsList" class="space-y-4">
+                        <!-- Time slots will be dynamically inserted here -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Note Modal -->
+    <div id="addNoteModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Add New Note</h3>
+                <form id="addNoteForm">
+                    <textarea id="noteContent" rows="4" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your note..."></textarea>
+                    <div class="mt-4 flex justify-end space-x-3">
+                        <button type="button" id="closeNoteModal" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Note</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Time Slot Modal -->
+    <div id="addTimeSlotModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Add New Time Slot</h3>
+                <form id="addTimeSlotForm">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                        <input type="date" id="slotDate" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                        <input type="time" id="slotTime" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Duration (minutes)</label>
+                        <input type="number" id="slotDuration" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="30" min="15" step="15" required>
+                    </div>
+                    <div class="mt-4 flex justify-end space-x-3">
+                        <button type="button" id="closeTimeSlotModal" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Time Slot</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
+        phone: "+1987654321",
+        glucoseReadings: [130, 140, 135, 142, 138, 145],
+        foodIntake: [
+            { time: "07:30 AM", meal: "Breakfast", description: "Whole grain toast with eggs" },
+            { time: "01:00 PM", meal: "Lunch", description: "Quinoa bowl" },
+            { time: "07:00 PM", meal: "Dinner", description: "Vegetable stir-fry" }
+        ],
+        activities: [
+            { time: "06:30 AM", activity: "Yoga", duration: "45 mins" },
+            { time: "05:30 PM", activity: "Light jogging", duration: "20 mins" }
+        ]
+    },
+    {
+        id: 3,
+        name: "Robert Johnson",
+        age: 38,
+        riskLevel: "low",
+        lastReading: 120,
+        phone: "+1122334455",
+        glucoseReadings: [118, 122, 120, 115, 121, 120],
+        foodIntake: [
+            { time: "08:30 AM", meal: "Breakfast", description: "Smoothie bowl" },
+            { time: "12:00 PM", meal: "Lunch", description: "Turkey sandwich" },
+            { time: "06:30 PM", meal: "Dinner", description: "Grilled fish" }
+        ],
+        activities: [
+            { time: "08:00 AM", activity: "Gym workout", duration: "1 hour" },
+            { time: "06:00 PM", activity: "Evening walk", duration: "30 mins" }
+        ]
+    }
+];
+
+// Current screen tracking
+let currentScreen = 'login';
+
+// DOM Elements
+const screens = {
+    login: document.getElementById('loginScreen'),
+    forgotPassword: document.getElementById('forgotPasswordScreen'),
+    patientsList: document.getElementById('patientsListScreen'),
+    patientDetails: document.getElementById('patientDetailsScreen')
+};
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+    // Login Form
+    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+    
+    // Forgot Password
+    document.getElementById('forgotPasswordLink').addEventListener('click', showForgotPasswordScreen);
+    document.getElementById('backToLoginLink').addEventListener('click', showLoginScreen);
+    document.getElementById('forgotPasswordForm').addEventListener('submit', handleForgotPassword);
+    
+    // Navigation
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    document.getElementById('backToListBtn').addEventListener('click', showPatientsListScreen);
+
+    // Initialize patients list
+    initializePatientsListScreen();
+});
+
+// Screen Navigation Functions
+function showScreen(screenId) {
+    Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+    screens[screenId].classList.remove('hidden');
+    currentScreen = screenId;
+}
+
+function showLoginScreen(e) {
+    e?.preventDefault();
+    showScreen('login');
+}
+
+function showForgotPasswordScreen(e) {
+    e?.preventDefault();
+    showScreen('forgotPassword');
+}
+
+function showPatientsListScreen(e) {
+    e?.preventDefault();
+    showScreen('patientsList');
+    renderPatientsList();
+}
+
+function showPatientDetailsScreen(patientId) {
+    showScreen('patientDetails');
+    renderPatientDetails(patientId);
+}
+
+// Authentication Handlers
+function handleLogin(e) {
+    e.preventDefault();
+    const phone = document.getElementById('phone').value;
+    const password = document.getElementById('password').value;
+
+    // Mock authentication
+    if (phone && password) {
+        showPatientsListScreen();
+    }
+}
+
+function handleForgotPassword(e) {
+    e.preventDefault();
+    const phone = document.getElementById('resetPhone').value;
+    const otpSection = document.getElementById('otpSection');
+    const sendOtpBtn = document.getElementById('sendOtpBtn');
+
+    if (!otpSection.classList.contains('hidden')) {
+        // Verify OTP
+        const otp = document.getElementById('otp').value;
+        if (otp === '123456') { // Mock OTP verification
+            alert('Password reset successful! Please check your phone for the new password.');
+            showLoginScreen(e);
+        }
+    } else {
+        // Send OTP
+        otpSection.classList.remove('hidden');
+        sendOtpBtn.textContent = 'Verify OTP';
+        alert('OTP sent to your phone!');
+    }
+}
+
+function handleLogout(e) {
+    e.preventDefault();
+    showLoginScreen(e);
+}
+
+// Patients List Functions
+function initializePatientsListScreen() {
+    const patientsList = document.getElementById('patientsList');
+    
+    // Add event listener for risk level filter
+    document.querySelector('select').addEventListener('change', (e) => {
+        const riskLevel = e.target.value;
+        renderPatientsList(riskLevel);
+    });
+
+    // Add event listener for search
+    document.querySelector('input[type="text"]').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        renderPatientsList(null, searchTerm);
+    });
+}
+
+function renderPatientsList(riskLevel = null, searchTerm = '') {
+    const patientsList = document.getElementById('patientsList');
+    let filteredPatients = [...mockPatients];
+
+    // Apply risk level filter
+    if (riskLevel && riskLevel !== 'all') {
+        filteredPatients = filteredPatients.filter(patient => patient.riskLevel === riskLevel);
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+        filteredPatients = filteredPatients.filter(patient => 
+            patient.name.toLowerCase().includes(searchTerm) ||
+            patient.phone.includes(searchTerm)
+        );
+    }
+
+    // Sort by risk level
+    filteredPatients.sort((a, b) => {
+        const riskOrder = { high: 1, moderate: 2, low: 3 };
+        return riskOrder[a.riskLevel] - riskOrder[b.riskLevel];
+    });
+
+    // Render patients
+    patientsList.innerHTML = filteredPatients.map(patient => `
+        <div class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition duration-200 border-l-4 ${getRiskColorClass(patient.riskLevel)}"
+             onclick="showPatientDetailsScreen(${patient.id})">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-lg font-semibold">${patient.name}</h3>
+                <span class="px-2 py-1 rounded text-sm ${getRiskBadgeClass(patient.riskLevel)}">${patient.riskLevel}</span>
+            </div>
+            <div class="space-y-2 text-gray-600">
+                <p>Age: ${patient.age}</p>
+                <p>Last Reading: ${patient.lastReading} mg/dL</p>
+                <p>Phone: ${patient.phone}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getRiskColorClass(riskLevel) {
+    const colors = {
+        high: 'border-red-500',
+        moderate: 'border-yellow-500',
+        low: 'border-green-500'
+    };
+    return colors[riskLevel] || 'border-gray-500';
+}
+
+function getRiskBadgeClass(riskLevel) {
+    const badges = {
+        high: 'bg-red-100 text-red-800',
+        moderate: 'bg-yellow-100 text-yellow-800',
+        low: 'bg-green-100 text-green-800'
+    };
+    return badges[riskLevel] || 'bg-gray-100 text-gray-800';
+}
+
+// Patient Details Functions
+function renderPatientDetails(patientId) {
+    const patient = mockPatients.find(p => p.id === patientId);
+    if (!patient) return;
+
+    // Render patient info
+    document.getElementById('patientInfo').innerHTML = `
+        <div class="space-y-2">
+            <p class="text-gray-600"><strong>Name:</strong> ${patient.name}</p>
+            <p class="text-gray-600"><strong>Age:</strong> ${patient.age}</p>
+            <p class="text-gray-600"><strong>Phone:</strong> ${patient.phone}</p>
+            <p class="text-gray-600"><strong>Risk Level:</strong> 
+                <span class="px-2 py-1 rounded text-sm ${getRiskBadgeClass(patient.riskLevel)}">${patient.riskLevel}</span>
+            </p>
+        </div>
+    `;
+
+    // Render glucose chart
+    renderGlucoseChart(patient.glucoseReadings);
+
+    // Render food intake
+    document.getElementById('foodIntakeList').innerHTML = patient.foodIntake.map(meal => `
+        <div class="border-b pb-3">
+            <div class="flex justify-between items-center mb-1">
+                <strong class="text-gray-700">${meal.meal}</strong>
+                <span class="text-sm text-gray-500">${meal.time}</span>
+            </div>
+            <p class="text-gray-600">${meal.description}</p>
+        </div>
+    `).join('');
+
+    // Render activities
+    document.getElementById('activitiesList').innerHTML = patient.activities.map(activity => `
+        <div class="border-b pb-3">
+            <div class="flex justify-between items-center mb-1">
+                <strong class="text-gray-700">${activity.activity}</strong>
+                <span class="text-sm text-gray-500">${activity.time}</span>
+            </div>
+            <p class="text-gray-600">Duration: ${activity.duration}</p>
+        </div>
+    `).join('');
+}
+
+function renderGlucoseChart(readings) {
+    const ctx = document.getElementById('glucoseChart').getContext('2d');
+    
+    // Destroy existing chart if it exists
+    if (window.glucoseChart) {
+        window.glucoseChart.destroy();
+    }
+
+    window.glucoseChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM'],
+            datasets: [{
+                label: 'Glucose Level (mg/dL)',
+                data: readings,
+                borderColor: 'rgb(59, 130, 246)',
+                tension: 0.1,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    min: 80,
+                    max: 200,
+                    ticks: {
+                        stepSize: 20
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
